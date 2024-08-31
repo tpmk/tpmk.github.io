@@ -11,9 +11,9 @@ Disallow: /js/
 Disallow: /css/
 Disallow: /links/
 Disallow: /BingSiteAuth.xml
-Disallow: /google56d95cf9b63d325f.html
+Disallow: /googlef357796f9ed85234.html
 
 User-agent: GPTBot
 Disallow: /
 
-Sitemap: https://755452800.github.io/sitemap.xml
+Sitemap: https://tpmk.github.io/sitemap.xml
