@@ -1,0 +1,601 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Steven Chu">
+  <meta name="keywords" content="久坐提醒,强制休息,定时任务,定时提醒,定时闹钟,windows,win10,win11,python,rundll32.exe user32.dll,LockWorkStation,linux crontab">
+  
+    <meta name="description" content="前言 (Introduction) 作为一个不怎么进实验室做实验的高龄PhD candidate，常年坐在电脑前摸鱼看文献写文章一搞就是一整天，长此以往颈椎和腰都要报废了，所以每隔一段时间起来活动下是很有必要的。如果有个工具&#x2F;软件能每隔1个小时提醒下，起来喝口水（避免肾结石），去室外散步(运动量达标+保护视力[1][2])，休息10分钟，简直就是一举N得。 一通搜索后发现并没有现成的能满足需">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows计划任务+python实现定时久坐提醒，锁屏强制休息">
+<meta property="og:url" content="https://tpmk.github.io/2022/02/04/force-to-rest/index.html">
+<meta property="og:site_name" content="Steven&#39;s Blog">
+<meta property="og:description" content="前言 (Introduction) 作为一个不怎么进实验室做实验的高龄PhD candidate，常年坐在电脑前摸鱼看文献写文章一搞就是一整天，长此以往颈椎和腰都要报废了，所以每隔一段时间起来活动下是很有必要的。如果有个工具&#x2F;软件能每隔1个小时提醒下，起来喝口水（避免肾结石），去室外散步(运动量达标+保护视力[1][2])，休息10分钟，简直就是一举N得。 一通搜索后发现并没有现成的能满足需">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-02-04T06:29:48.000Z">
+<meta property="article:modified_time" content="2022-02-05T13:40:06.000Z">
+<meta property="article:author" content="Steven Chu">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>Windows计划任务+python实现定时久坐提醒，锁屏强制休息 - Steven&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+  
+<link rel="stylesheet" href="/css/reward.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"tpmk.github.io","root":"/","version":"1.8.14","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 60vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Steven&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://pic.imgdb.cn/item/620667dd2ab3f51d91a22318.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Windows计划任务+python实现定时久坐提醒，锁屏强制休息">
+              
+                Windows计划任务+python实现定时久坐提醒，锁屏强制休息
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-02-04 14:29" pubdate>
+        2022/02/04 14:29
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.8k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      23 分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Windows计划任务+python实现定时久坐提醒，锁屏强制休息</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：2022/02/05 21:40
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="前言-introduction">前言 (Introduction)</h2>
+<p>作为一个不怎么进实验室做实验的高龄PhD
+candidate，常年坐在电脑前<del>摸鱼</del>看文献写文章一搞就是一整天，长此以往颈椎和腰都要报废了，所以每隔一段时间起来活动下是很有必要的。如果有个工具/软件能每隔1个小时提醒下，起来喝口水（避免肾结石），去室外散步(运动量达标+保护视力<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span
+class="hint--top hint--rounded" aria-label="BJO |
+近视可能与光照强度相关，户外活动预防近视原因揭示
+">[1]</span></a></sup><sup id="fnref:2" class="footnote-ref"><a href="#fn:2" rel="footnote"><span
+class="hint--top hint--rounded"
+aria-label="Lingham G, Mackey DA, Lucas R, et al. How does spending time outdoors
+protect against myopia? A review. British Journal of Ophthalmology
+2020;104:593-599.
+">[2]</span></a></sup>)，休息10分钟，简直就是一举N得。</p>
+<p>一通搜索后发现并没有现成的能满足需求且足够简洁的第三方软件或者工具(有些能实现这个目的但是会额外带来各种烦人的广告)，最后决定利用Windows自带的计划任务+python脚本来实现。</p>
+<h2 id="方案-solutions">方案 (Solutions)</h2>
+<h3 id="version-1">version-1</h3>
+<p>该思路的基本原理是：通过Windows计划任务，设定每隔1小时启动一个python脚本，该脚本会弹窗<del>且播放闹铃</del>进行久坐提醒(只要你在电脑上认真看文献而不是刷手机就能被提醒到:joy:)，然后开启10分钟倒计时。</p>
+<p>python脚本(<code>countdown.py</code>)比较简单： <figure class="highlight lua"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></div></td><td class="code"><pre><code class="hljs lua">import <span class="hljs-built_in">os</span><br>import <span class="hljs-built_in">time</span><br><br>timeleft = <span class="hljs-number">600</span><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Take a break and have &#123;&#125; s rest!&quot;</span>.<span class="hljs-built_in">format</span>(timeleft))<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;\r&#123;: &gt;12&#125; s left&quot;</span>.<span class="hljs-built_in">format</span>(timeleft), <span class="hljs-keyword">end</span>=<span class="hljs-string">&quot;&quot;</span>)<br><br><span class="hljs-keyword">while</span> timeleft &gt; <span class="hljs-number">0</span>:<br>    <span class="hljs-built_in">time</span>.sleep(<span class="hljs-number">1</span>)<br>    timeleft = timeleft - <span class="hljs-number">1</span><br>    <span class="hljs-keyword">if</span> timeleft != <span class="hljs-number">0</span>:<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;\r&#123;: &gt;12&#125; s left&quot;</span>.<span class="hljs-built_in">format</span>(timeleft), <span class="hljs-keyword">end</span>=<span class="hljs-string">&quot;&quot;</span>)<br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;\r&#123;: &gt;12&#125; s left&quot;</span>.<span class="hljs-built_in">format</span>(timeleft), <span class="hljs-keyword">end</span>=<span class="hljs-string">&quot;\n&quot;</span>)<br></code></pre></td></tr></table></figure></p>
+<p>建立计划任务流程如下：</p>
+<ol type="1">
+<li>Win+R打开“运行”，输入<code>taskschd.msc</code>回车，打开计划任务：</li>
+</ol>
+<p><img
+src="https://pic.imgdb.cn/item/6206626d2ab3f51d919c9979.jpg" srcset="/img/loading.gif" lazyload /></p>
+<ol start="2" type="1">
+<li>创建任务，随意命名(这里命名为<code>rest</code>)：</li>
+</ol>
+<p><img
+src="https://pic.imgdb.cn/item/6206626d2ab3f51d919c997d.png" srcset="/img/loading.gif" lazyload /></p>
+<ol start="3" type="1">
+<li>编辑触发器，选定起始时间(可以略早于设定该计划的时间)和到期时间(到期时间也可以不勾选)：</li>
+</ol>
+<p><img
+src="https://pic.imgdb.cn/item/6206626d2ab3f51d919c9981.png" srcset="/img/loading.gif" lazyload /></p>
+<p>此处设定的是每天9点50开始启动该脚本，此后10点50，11点50...均会启动此脚本。</p>
+<ol start="4" type="1">
+<li>编辑操作，设定脚本的路径：</li>
+</ol>
+<p><img
+src="https://pic.imgdb.cn/item/6206626d2ab3f51d919c9987.png" srcset="/img/loading.gif" lazyload /></p>
+<ol start="5" type="1">
+<li>剩下设置可以保持默认，或者根据自己的需要设置。</li>
+</ol>
+<p>设定完之后可以点击下运行试试效果。<strong>需要注意的是</strong>，在触发器设置的时候设定的是9点50启动，如果你到办公室太晚，10点才开电脑，那么计划任务是不会运行的...所以此处可以按照自己的情况自行设置(督促我们要早点去办公室<del>摸鱼</del>干活)。</p>
+<h3 id="version-2">version-2</h3>
+<p>测试一段时间后，计划任务和脚本运行良好，但是我的颈椎和腰表示并不好:joy:，因为每次弹窗后，要是读文献读到关键部分或者是写文章到关键部分（<del>或者是摸鱼摸到兴头上</del>），我只会顺手把提醒窗口关了，然后无视提醒，最后提醒了个寂寞......</p>
+<p>所以我决定狠一点，时间到了就自动锁屏，每隔10s锁一次，关闭提醒窗口也没用，让自己没法<del>摸鱼</del>干活，真正的<strong>强制休息</strong>，只能被迫起来喝喝水，出去走走。</p>
+<p><code>countdown.py</code>脚本修改如下：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs lua">import <span class="hljs-built_in">os</span><br>import <span class="hljs-built_in">time</span><br><br>settimeleft = <span class="hljs-number">600</span><br>ttp = <span class="hljs-number">10</span><br><span class="hljs-built_in">os</span>.<span class="hljs-built_in">popen</span>(<span class="hljs-string">&quot;pythonw lockscreen.py &#123;&#125; &#123;&#125;&quot;</span>.<span class="hljs-built_in">format</span>(settimeleft, ttp))<br>timeleft = settimeleft<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Take a break and have &#123;&#125; s rest! Screen will be locked in &#123;&#125; s!&quot;</span>.<span class="hljs-built_in">format</span>(settimeleft, ttp))<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;\r&#123;: &gt;12&#125; s left&quot;</span>.<span class="hljs-built_in">format</span>(timeleft), <span class="hljs-keyword">end</span>=<span class="hljs-string">&#x27;&#x27;</span>)<br><br><span class="hljs-keyword">while</span> timeleft &gt; <span class="hljs-number">0</span>:<br>    <span class="hljs-built_in">time</span>.sleep(<span class="hljs-number">1</span>)<br>    timeleft = timeleft - <span class="hljs-number">1</span><br>    <span class="hljs-keyword">if</span> timeleft != <span class="hljs-number">0</span>:<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;\r&#123;: &gt;12&#125; s left&quot;</span>.<span class="hljs-built_in">format</span>(timeleft), <span class="hljs-keyword">end</span>=<span class="hljs-string">&quot;&quot;</span>)<br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;\r&#123;: &gt;12&#125; s left&quot;</span>.<span class="hljs-built_in">format</span>(timeleft), <span class="hljs-keyword">end</span>=<span class="hljs-string">&quot;\n&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>为了实现锁屏，增加一个<code>lockscreen.py</code>脚本：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs vim">import os<br>import sys<br>import time<br><br><br>def lockscreen():<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;rundll32.exe user32.dll,LockWorkStation&quot;</span>)<br><br><br><span class="hljs-built_in">count</span> = <span class="hljs-keyword">int</span>(sys.<span class="hljs-built_in">argv</span>[<span class="hljs-number">1</span>])<br>ttp = <span class="hljs-keyword">int</span>(sys.<span class="hljs-built_in">argv</span>[<span class="hljs-number">2</span>])<br>time.<span class="hljs-keyword">sleep</span>(ttp)<br>lockscreen()<br><span class="hljs-built_in">count</span> = <span class="hljs-built_in">count</span> - ttp<br><span class="hljs-keyword">while</span> <span class="hljs-built_in">count</span> &gt; <span class="hljs-number">0</span>:<br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">count</span> % <span class="hljs-number">10</span> == <span class="hljs-number">0</span>:<br>        lockscreen()<br>    time.<span class="hljs-keyword">sleep</span>(<span class="hljs-number">1</span>)<br>    <span class="hljs-built_in">count</span> -= <span class="hljs-number">1</span><br></code></pre></td></tr></table></figure>
+<p>为了使锁屏脚本能正常工作，<strong>需要修改下计划任务中的操作中的起始路径</strong>(因为<code>countdown.py</code>脚本中调用<code>lockscreen.py</code>脚本时没有设置绝对路径，如果设置了绝对路径也可忽略此步骤)：</p>
+<p><img
+src="https://pic.imgdb.cn/item/6206626d2ab3f51d919c9991.png" srcset="/img/loading.gif" lazyload /></p>
+<p><strong>这样的话，每个小时50分的时候，脚本就会弹窗提示休息10分钟，并且在10s后开始锁屏，每隔10s锁一次屏，让你无法工作，只能被迫休息</strong>。</p>
+<p>运行了一段时间发现效果显著，喝水增多+运动达标+视力都更好了呢。</p>
+<p><strong><em>Disclaimer</em></strong>:
+<strong>切记不要在有用电脑计划的时候开启这个计划任务</strong>(比如用电脑参加会议或者要和老板用电脑讨论文章)，不然锁屏了就很尴尬(补救方法就是拼手速在10s内打开任务管理器杀掉python进程或者重启电脑)。</p>
+<h2 id="参考资料-references">参考资料 (References)</h2>
+<section class="footnotes">
+<div class="footnote-list">
+<ol>
+<li>
+<span id="fn:1"
+class="footnote-text"><span><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/349961523">BJO
+| 近视可能与光照强度相关，户外活动预防近视原因揭示</a>
+<a href="#fnref:1" rev="footnote" class="footnote-backref">
+↩︎</a></span></span>
+</li>
+<li>
+<span id="fn:2" class="footnote-text"><span>Lingham G, Mackey DA, Lucas
+R, et al. How does spending time outdoors protect against myopia? A
+review. British Journal of Ophthalmology 2020;104:593-599.
+<a href="#fnref:2" rev="footnote" class="footnote-backref">
+↩︎</a></span></span>
+</li>
+</ol>
+</div>
+</section>
+
+            </div>
+
+            <!-- 添加打赏模块 -->
+            <div class="reward-container">
+              
+                <button id="rewardBtn" class="reward-btn">
+                   
+                    ❤ 赞赏
+                  	
+                </button>
+                <p class="tea">“觉得不错的话，请我喝杯咖啡吧~ ୧(๑•̀⌄•́๑)૭”</p>
+                <div id="rewardImgContainer" class="reward-img-container">
+                      <div class="singleImgContainer">
+                          <img id="wechatImg" class="reward-img" src="/img/wechatpay.png" srcset="/img/loading.gif" lazyload alt="微信二维码">
+                            <p class="wechatPay">微信支付</p>
+                        </div>
+                        <div class="singleImgContainer">
+                            <img id="alipayImg" class="reward-img" src="/img/alipay.png" srcset="/img/loading.gif" lazyload alt="支付宝二维码">
+                            <p class="aliPay">支付宝支付</p>
+                        </div>
+                </div>
+              
+            </div>
+
+            <hr>            
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Life-tricks/">Life tricks</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/python/">python</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/03/01/python-script-for-VASP-frequency-batch-calculation/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">python脚本批量进行VASP吸附结构频率计算</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/01/29/VASP-error-BRMIX-very-serious-problems-the-old-and-the-new-charge-density-differ/">
+                        <span class="hidden-mobile">VASP error - BRMIX very serious problems the old and the new charge density differ 报错解决方案</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div class="cusdis" style="width:100%">
+    <div id="cusdis_thread"
+      data-host="https://cusdis.com"
+      data-app-id="1bbdc6c9-ed4a-44f7-9a6b-75d594bbd200"
+      data-page-id="8b19e0aca08c34d7d8217f9410ede4d2"
+      data-page-url="2022/02/04/force-to-rest/"
+      data-page-title="Windows计划任务+python实现定时久坐提醒，锁屏强制休息"
+      data-theme="auto"
+    >
+    </div>
+  </div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#cusdis_thread', function() {
+      Fluid.utils.createScript('https://cusdis.com/js/widget/lang/zh-cn.js');
+      Fluid.utils.createScript('https://cusdis.com/js/cusdis.es.js');
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema) {
+        document.querySelector('#cusdis_thread').dataset.theme = schema
+      }
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <p><span>Copyright © <a href="/about/">Steven</a> 2022-2024</span></p> <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Powered by Hexo</span></a> <img src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/2764.png" srcset="/img/loading.gif" lazyload width=20 height=20> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Theme by Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+<script src="/js/d59b1524c6.js"></script>
+<script src="/js/reward.js"></script>
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

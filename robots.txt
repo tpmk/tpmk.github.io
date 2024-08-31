@@ -1,0 +1,19 @@
+# robots.txt
+User-agent: *
+Allow: /
+Allow: /about/
+Allow: /archives/
+Allow: /categories/
+Allow: /tags/
+
+Disallow: /img/
+Disallow: /js/
+Disallow: /css/
+Disallow: /links/
+Disallow: /BingSiteAuth.xml
+Disallow: /google56d95cf9b63d325f.html
+
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://755452800.github.io/sitemap.xml

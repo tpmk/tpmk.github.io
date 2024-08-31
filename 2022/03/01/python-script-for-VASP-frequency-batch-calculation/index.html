@@ -1,0 +1,593 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Steven Chu">
+  <meta name="keywords" content="批量VASP频率计算,吸附结构VASP频率计算,python脚本 - IBRION = 5 NPAR NCORE">
+  
+    <meta name="description" content="前言（Introduction） 在用VASP做催化反应机理分析时，自由能变化是最为重要的分析内容之一。通常需要进行频率计算来进行自由能校正[1]。我们常计算的体系一般是某个(系列)结构吸附一些小的分子或者中间产物，这样的情况下频率计算需要以下几个步骤：  复制CONTCAR为POSCAR 修改POSCAR，fix吸附基底，relax表面吸附的分子 修改INCAR参数  IBRION">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python脚本批量进行VASP吸附结构频率计算">
+<meta property="og:url" content="https://tpmk.github.io/2022/03/01/python-script-for-VASP-frequency-batch-calculation/index.html">
+<meta property="og:site_name" content="Steven&#39;s Blog">
+<meta property="og:description" content="前言（Introduction） 在用VASP做催化反应机理分析时，自由能变化是最为重要的分析内容之一。通常需要进行频率计算来进行自由能校正[1]。我们常计算的体系一般是某个(系列)结构吸附一些小的分子或者中间产物，这样的情况下频率计算需要以下几个步骤：  复制CONTCAR为POSCAR 修改POSCAR，fix吸附基底，relax表面吸附的分子 修改INCAR参数  IBRION">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-01T12:16:27.000Z">
+<meta property="article:modified_time" content="2023-08-20T04:22:34.000Z">
+<meta property="article:author" content="Steven Chu">
+<meta property="article:tag" content="VASP">
+<meta property="article:tag" content="DFT">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>python脚本批量进行VASP吸附结构频率计算 - Steven&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+  
+<link rel="stylesheet" href="/css/reward.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"tpmk.github.io","root":"/","version":"1.8.14","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 60vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Steven&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://pic.imgdb.cn/item/620667dd2ab3f51d91a22318.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="python脚本批量进行VASP吸附结构频率计算">
+              
+                python脚本批量进行VASP吸附结构频率计算
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-03-01 20:16" pubdate>
+        2022/03/01 20:16
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      7.1k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      60 分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">python脚本批量进行VASP吸附结构频率计算</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：2023/08/20 12:22
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="前言introduction">前言（Introduction）</h2>
+<p>在用VASP做催化反应机理分析时，自由能变化是最为重要的分析内容之一。通常需要进行频率计算来进行自由能校正<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span
+class="hint--top hint--rounded"
+aria-label="校正分子和吸附分子自由能. Jincheng Liu.
+http://blog.wangruixing.cn/2019/04/21/freenergy/
+">[1]</span></a></sup>。我们常计算的体系一般是<strong>某个(系列)结构吸附一些小的分子或者中间产物</strong>，这样的情况下频率计算需要以下几个步骤：</p>
+<ul>
+<li>复制<code>CONTCAR</code>为<code>POSCAR</code></li>
+<li><strong>修改POSCAR，fix吸附基底，relax表面吸附的分子</strong></li>
+<li>修改<code>INCAR</code>参数
+<ul>
+<li><code>IBRION = 5</code></li>
+<li><code>NFREE = 2</code></li>
+<li><code>POTIM = 0.015</code></li>
+<li><code>EDIFF = 1E-7</code></li>
+</ul></li>
+<li>run</li>
+</ul>
+<p>虽然步骤简单，但是当要进行一系列结构吸附某个中间产物的频率计算时，手动操作比较麻烦(特别是修改<code>POSCAR</code>进行固定的时候)，所以尝试用python脚本批量实现上述步骤，减少工作量。</p>
+<h2 id="方案-solution">方案 (Solution)</h2>
+<h3 id="前置准备">1. 前置准备</h3>
+<p><code>vaspkit 1.2.5 ~ 1.3.1</code> (<strong><em>update</em></strong>:
+vaspkit 1.3.5版402功能不支持fix no atom）<br />
+<code>python 3.8.0</code></p>
+<h3 id="代码思路">2. 代码思路</h3>
+<h4 id="step-1">step 1</h4>
+<p>脚本的最关键在于实现自动修改<code>POSCAR</code>使得吸附基底fix，而吸附的分子或者中间体是relax。考虑到大部分情况下，我们需要relax的原子往往都是在最顶部的(也就是<code>POSCAR</code>中z值最大的那几个原子)，所以我们可以先fix
+<code>POSCAR</code>中所有原子(<code>vaspkit</code>
+<code>402</code>功能-&gt; <code>1</code> -&gt; <code>2</code> -&gt;
+<code>0 0</code> -&gt;
+<code>2</code>)，然后根据吸附分子/中间产物的个数<em>n</em>，relax
+<code>POSCAR</code>中最顶部的<em>n</em>个原子。比如吸附的小分子是CO<sub>2</sub>，那我们输入3，就可以relax最顶部的3个原子。具体代码如下：
+<figure class="highlight scss"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></div></td><td class="code"><pre><code class="hljs scss">def <span class="hljs-built_in">relax_top_atoms</span>(num):<br>    os.<span class="hljs-built_in">popen</span>(<br>        <span class="hljs-string">&quot;(echo 402; echo 1; echo 2; echo 0 0; echo 2;)|vaspkit&quot;</span>).<span class="hljs-built_in">readlines</span>()  # generate POSCAR_FIX with Cartesian coord<br>    atom_num_str = os.<span class="hljs-built_in">popen</span>(<span class="hljs-string">&#x27;sed -n 7p POSCAR_FIX | tail -n1&#x27;</span>).<span class="hljs-built_in">readline</span>().<span class="hljs-built_in">split</span>()<br>    atom_num = <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(int, atom_num_str)))<br>    if num &gt; atom_num:<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Relax atom number greater than total atom number! Wrong num input or wrong POSCAR/CONTCAR!&quot;</span>)<br>        sys.<span class="hljs-built_in">exit</span>()<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/T  T  T/F  F  F/g&#x27; POSCAR_FIX&quot;</span>)<br>    lines = os.<span class="hljs-built_in">popen</span>(<span class="hljs-string">&quot;sed -n &#x27;10,$p&#x27; POSCAR_FIX&quot;</span>).<span class="hljs-built_in">readlines</span>()<br>    z_coord = []<br>    for line in lines:<br>        z_coord.<span class="hljs-built_in">append</span>(line.<span class="hljs-built_in">split</span>()[<span class="hljs-number">2</span>])<br>    z = <span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(float, z_coord))<br>    index_list = <span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(z)), key=lambda k: z[k], reverse=True)<br>    index_to_relax = index_list[:num]<br>    for i in index_to_relax:<br>        z_relax = z_coord[i]<br>        os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/&#123;&#125;    F  F  F/&#123;&#125;    T  T  T/g&#x27; POSCAR_FIX&quot;</span>.<span class="hljs-built_in">format</span>(z_relax, z_relax))<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;cp POSCAR_FIX POSCAR&quot;</span>)<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Selected top atoms set relaxed.&quot;</span>)<br></code></pre></td></tr></table></figure> 这里先用vaspkit
+402功能对所有原子固定，然后把<code>POSCAR</code>中所有原子的z轴坐标读出，排序出最顶部原子所在的z轴的坐标，最后把<code>F  F  F</code>替换为<code>T  T  T</code>，实现最顶部<em>n</em>个原子的relax。
+最关键的代码
+<strong><code>index_list = sorted(range(len(z)), key=lambda k: z[k], reverse=True)</code></strong>
+很有意思:rofl:</p>
+<h4 id="step-2">step 2</h4>
+<p>通过sed命令修改<code>INCAR</code>中的参数： <figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs scss">def <span class="hljs-built_in">con2pos</span>(name):<br>    os.<span class="hljs-built_in">chdir</span>(name)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/EDIFF[^G].*/EDIFF = 1E-7/&#x27; INCAR&quot;</span>)<br>    #os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/^\s*NPAR/#NPAR/&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/IBRION.*/IBRION = 5/&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/POTIM.*/POTIM = 0.015/&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;/POTIM/a\   NFREE = 2&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;cp CONTCAR POSCAR&quot;</span>)<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;CONTCAR in &#123;&#125; copied to POSCAR&quot;</span>.<span class="hljs-built_in">format</span>(name))<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;rm slurm*&quot;</span>)<br>    <span class="hljs-built_in">relax_top_atoms</span>(relax_atom_num)<br>    os.<span class="hljs-built_in">chdir</span>(cwd)<br></code></pre></td></tr></table></figure>
+<del><strong>这里有一点需要注意的是</strong>：</del>
+<del><code>os.system("sed -i 's/^\s*NPAR/#NPAR/' INCAR")</code>这行代码把<code>NPAR</code>给注释掉了，因为我一般用VASP进行结构优化时<code>ALGO</code>参数一般是<code>Fast</code>，用该算法进行频率计算算了一步之后就会报错，只能注释掉。如果想频率计算的时候也可以设置<code>NPAR</code>提高并行计算效率，可以在结构优化的时候设置<code>ALGO = Normal</code>，这样的话频率计算时就不会报错。</del></p>
+<p><strong><em>Update:</em></strong>
+最近发现以前做的一些计算，一般都不会设置<code>ISYM</code>，因此使用的是默认设置（<code>ISYM = 2</code>，也就是使用对称性），但是<code>IBRION = 5</code>时会打破对称性，因此设置<code>NPAR</code>后会报错:
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs clean"> -----------------------------------------------------------------------------<br>|                                                                             |<br>|     EEEEEEE  RRRRRR   RRRRRR   OOOOOOO  RRRRRR      ###     ###     ###     |<br>|     E        R     R  R     R  O     O  R     R     ###     ###     ###     |<br>|     E        R     R  R     R  O     O  R     R     ###     ###     ###     |<br>|     EEEEE    RRRRRR   RRRRRR   O     O  RRRRRR       #       #       #      |<br>|     E        R   R    R   R    O     O  R   R                               |<br>|     E        R    R   R    R   O     O  R    R      ###     ###     ###     |<br>|     EEEEEEE  R     R  R     R  OOOOOOO  R     R     ###     ###     ###     |<br>|                                                                             |<br>|      VASP internal routines  have requested a change <span class="hljs-keyword">of</span> the k-point set.    |<br>|      Unfortunately this is only possible <span class="hljs-keyword">if</span> NPAR=number <span class="hljs-keyword">of</span> nodes.           |<br>|      Please remove the tag NPAR <span class="hljs-keyword">from</span> the INCAR file and restart the         |<br>|      calculations.                                                          |<br>|                                                                             |<br>|      ----&gt;  I REFUSE TO CONTINUE WITH THIS SICK JOB ..., BYE!!! &lt;----       |<br>|                                                                             |<br> -----------------------------------------------------------------------------<br></code></pre></td></tr></table></figure> 出于这个目的，代码中会把NPAR一行注释掉,
+但是这样的话，计算效率会低很多。<strong>现在只要设置<code>ISYM = 0</code>之后，就可以正常设置<code>NPAR</code>了。</strong>
+参考链接：https://mattermodeling.stackexchange.com/questions/9004/ncore-bigger-than-1-when-performing-phonon-vibrational-calculationibrion-5-in-VASP</p>
+<h4 id="step-3">step 3</h4>
+<p>最后，增加一些让用户可以选择对哪些文件夹进行频率计算的代码和一些错误提示就完事了，完整代码如下：
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><code class="hljs scss">import os<br>import sys<br><br>def <span class="hljs-built_in">make_dir</span>(name):<br>    try:<br>        os.<span class="hljs-built_in">mkdir</span>(name)<br>        return True<br>    except FileExistsError:<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;&#123;&#125; exists, skipping...&quot;</span>.<span class="hljs-built_in">format</span>(name))<br>        return False<br><br><br>def <span class="hljs-built_in">vasp_folder</span>(name):<br>    os.<span class="hljs-built_in">chdir</span>(name)<br>    count = <span class="hljs-number">0</span><br>    for i in os.<span class="hljs-built_in">listdir</span>():<br>        if i in [<span class="hljs-string">&quot;INCAR&quot;</span>, <span class="hljs-string">&quot;POSCAR&quot;</span>, <span class="hljs-string">&quot;POTCAR&quot;</span>, <span class="hljs-string">&quot;KPOINTS&quot;</span>, <span class="hljs-string">&quot;CONTCAR&quot;</span>, <span class="hljs-string">&quot;OUTCAR&quot;</span>]:<br>            count += <span class="hljs-number">1</span><br>    os.<span class="hljs-built_in">chdir</span>(cwd)<br>    if count &gt;= <span class="hljs-number">5</span>:<br>        return True<br>    else:<br>        <span class="hljs-built_in">print</span>(f<span class="hljs-string">&quot;&#123;name&#125; does not seem to be a finished VASP job folder&quot;</span>)<br><br><br>def <span class="hljs-built_in">con2pos</span>(name):<br>    os.<span class="hljs-built_in">chdir</span>(name)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/EDIFF[^G].*/EDIFF = 1E-7/&#x27; INCAR&quot;</span>)<br>    # os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/^\s*NPAR/#NPAR/&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/IBRION.*/IBRION = 5/&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/POTIM.*/POTIM = 0.015/&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;/POTIM/a\   NFREE = 2&#x27; INCAR&quot;</span>)<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;cp CONTCAR POSCAR&quot;</span>)<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;CONTCAR in &#123;&#125; copied to POSCAR&quot;</span>.<span class="hljs-built_in">format</span>(name))<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;rm slurm*&quot;</span>)<br>    <span class="hljs-built_in">relax_top_atoms</span>(relax_atom_num)<br>    os.<span class="hljs-built_in">chdir</span>(cwd)<br>    global count<br>    count += <span class="hljs-number">1</span><br><br><br>def <span class="hljs-built_in">relax_top_atoms</span>(num):<br>    os.<span class="hljs-built_in">popen</span>(<br>        <span class="hljs-string">&quot;(echo 402; echo 1; echo 2; echo 0 0; echo 2;)|vaspkit&quot;</span>).<span class="hljs-built_in">readlines</span>()  # generate POSCAR_FIX with Cartesian coord<br>    atom_num_str = os.<span class="hljs-built_in">popen</span>(<span class="hljs-string">&#x27;sed -n 7p POSCAR_FIX | tail -n1&#x27;</span>).<span class="hljs-built_in">readline</span>().<span class="hljs-built_in">split</span>()<br>    atom_num = <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(int, atom_num_str)))<br>    if num &gt; atom_num:<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Relax atom number greater than total atom number! Wrong num input or wrong POSCAR/CONTCAR!&quot;</span>))<br>        sys.<span class="hljs-built_in">exit</span>()<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/T  T  T/F  F  F/g&#x27; POSCAR_FIX&quot;</span>)<br>    lines = os.<span class="hljs-built_in">popen</span>(<span class="hljs-string">&quot;sed -n &#x27;10,$p&#x27; POSCAR_FIX&quot;</span>).<span class="hljs-built_in">readlines</span>()<br>    z_coord = []<br>    for line in lines:<br>        z_coord.<span class="hljs-built_in">append</span>(line.<span class="hljs-built_in">split</span>()[<span class="hljs-number">2</span>])<br>    z = <span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(float, z_coord))<br>    index_list = <span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(z)), key=lambda k: z[k], reverse=True)<br>    index_to_relax = index_list[:num]<br>    for i in index_to_relax:<br>        z_relax = z_coord[i]<br>        os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;sed -i &#x27;s/&#123;&#125;    F  F  F/&#123;&#125;    T  T  T/g&#x27; POSCAR_FIX&quot;</span>.<span class="hljs-built_in">format</span>(z_relax, z_relax))<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;cp POSCAR_FIX POSCAR&quot;</span>)<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Selected top atoms set relaxed.&quot;</span>)<br><br><br>cwd = os.<span class="hljs-built_in">getcwd</span>()<br>exclude_folder = <span class="hljs-built_in">input</span>(<span class="hljs-string">&quot;Specif exclude folders &amp; files (using space to seperate):&quot;</span>)<br>exclude_folders = exclude_folder.<span class="hljs-built_in">split</span>()<br>run_folder = <span class="hljs-built_in">input</span>(<span class="hljs-string">&quot;Specif folders to run (default all, using space to seperate):&quot;</span>)<br>run_folders = run_folder.<span class="hljs-built_in">split</span>()<br>top_atoms = <span class="hljs-built_in">input</span>(<span class="hljs-string">&quot;How many atoms to be set to relaxed on top?\n&quot;</span>)<br>try:<br>    relax_atom_num = <span class="hljs-built_in">int</span>(top_atoms)<br>    if relax_atom_num &lt; <span class="hljs-number">0</span>:<br>        raise ValueError<br>except ValueError:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Wrong input! Input should be positive integer!&quot;</span>)<br>    sys.<span class="hljs-built_in">exit</span>()<br>if run_folder:<br>    folders = run_folders<br>else:<br>    folders = os.<span class="hljs-built_in">listdir</span>()<br>try:<br>    os.<span class="hljs-built_in">mkdir</span>(<span class="hljs-string">&quot;freq&quot;</span>)<br>except FileExistsError:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Attention: folder &lt;freq&gt; exists!&quot;</span>)<br>count = <span class="hljs-number">0</span><br>for folder in folders:<br>    if folder in exclude_folders:<br>        continue<br>    if os.path.<span class="hljs-built_in">isfile</span>(folder):<br>        continue<br>    if not <span class="hljs-built_in">vasp_folder</span>(folder):<br>        continue<br>    if folder.<span class="hljs-built_in">split</span>(<span class="hljs-string">&quot;_&quot;</span>)[-<span class="hljs-number">1</span>] == <span class="hljs-string">&quot;freq&quot;</span>:<br>        continue<br>    freq_name = folder + <span class="hljs-string">&quot;_freq&quot;</span><br>    freq_name = <span class="hljs-string">&quot;freq/&quot;</span> + freq_name<br>    flag = <span class="hljs-built_in">make_dir</span>(freq_name)<br>    if not flag:<br>        continue<br>    os.<span class="hljs-built_in">system</span>(<span class="hljs-string">&quot;cp -r &#123;&#125;/* &#123;&#125;/&quot;</span>.<span class="hljs-built_in">format</span>(folder, freq_name))<br>    #if os.<span class="hljs-built_in">popen</span>(<span class="hljs-string">&quot;grep &#x27;^\s*NPAR&#x27; &#123;&#125;/INCAR&quot;</span>.<span class="hljs-built_in">format</span>(freq_name)).<span class="hljs-built_in">read</span>():<br>        #<span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;NPAR tag should be removed for most freq calculations! Will comment out NPAR...&quot;</span>)<br>    <span class="hljs-built_in">con2pos</span>(freq_name)<br><br>if count != <span class="hljs-number">0</span>:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Remember to check if atoms are fixed properly in POSCAR before freq calculation!&quot;</span>)<br></code></pre></td></tr></table></figure></p>
+<p>自己用了一段时间，基本上没有什么问题，欢迎各位使用测试:satisfied:</p>
+<h2 id="参考资料-references">参考资料 (References)</h2>
+<section class="footnotes">
+<div class="footnote-list">
+<ol>
+<li>
+<span id="fn:1" class="footnote-text"><span>校正分子和吸附分子自由能.
+Jincheng Liu. http://blog.wangruixing.cn/2019/04/21/freenergy/
+<a href="#fnref:1" rev="footnote" class="footnote-backref">
+↩︎</a></span></span>
+</li>
+</ol>
+</div>
+</section>
+
+            </div>
+
+            <!-- 添加打赏模块 -->
+            <div class="reward-container">
+              
+                <button id="rewardBtn" class="reward-btn">
+                   
+                    ❤ 赞赏
+                  	
+                </button>
+                <p class="tea">“觉得不错的话，请我喝杯咖啡吧~ ୧(๑•̀⌄•́๑)૭”</p>
+                <div id="rewardImgContainer" class="reward-img-container">
+                      <div class="singleImgContainer">
+                          <img id="wechatImg" class="reward-img" src="/img/wechatpay.png" srcset="/img/loading.gif" lazyload alt="微信二维码">
+                            <p class="wechatPay">微信支付</p>
+                        </div>
+                        <div class="singleImgContainer">
+                            <img id="alipayImg" class="reward-img" src="/img/alipay.png" srcset="/img/loading.gif" lazyload alt="支付宝二维码">
+                            <p class="aliPay">支付宝支付</p>
+                        </div>
+                </div>
+              
+            </div>
+
+            <hr>            
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Computational-Chemistry/">Computational Chemistry</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/VASP/">VASP</a>
+                    
+                      <a class="hover-with-bg" href="/tags/DFT/">DFT</a>
+                    
+                      <a class="hover-with-bg" href="/tags/python/">python</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/08/03/latex-notes/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">LaTeX笔记[WIP]</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/02/04/force-to-rest/">
+                        <span class="hidden-mobile">Windows计划任务+python实现定时久坐提醒，锁屏强制休息</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div class="cusdis" style="width:100%">
+    <div id="cusdis_thread"
+      data-host="https://cusdis.com"
+      data-app-id="1bbdc6c9-ed4a-44f7-9a6b-75d594bbd200"
+      data-page-id="2f9261395649ee9b178dd84745cf09dc"
+      data-page-url="2022/03/01/python-script-for-VASP-frequency-batch-calculation/"
+      data-page-title="python脚本批量进行VASP吸附结构频率计算"
+      data-theme="auto"
+    >
+    </div>
+  </div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#cusdis_thread', function() {
+      Fluid.utils.createScript('https://cusdis.com/js/widget/lang/zh-cn.js');
+      Fluid.utils.createScript('https://cusdis.com/js/cusdis.es.js');
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema) {
+        document.querySelector('#cusdis_thread').dataset.theme = schema
+      }
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <p><span>Copyright © <a href="/about/">Steven</a> 2022-2024</span></p> <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Powered by Hexo</span></a> <img src="https://pic.sopili.net/pub/emoji/twitter/2/72x72/2764.png" srcset="/img/loading.gif" lazyload width=20 height=20> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Theme by Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+<script src="/js/d59b1524c6.js"></script>
+<script src="/js/reward.js"></script>
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://tpmk.github.io/about/index.html</loc>
+    
+    <lastmod>2024-05-29</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/2023/08/15/git-notes/</loc>
+    
+    <lastmod>2023-09-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/2022/03/01/python-script-for-VASP-frequency-batch-calculation/</loc>
+    
+    <lastmod>2023-08-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/2023/08/03/latex-notes/</loc>
+    
+    <lastmod>2023-08-13</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/2022/02/04/force-to-rest/</loc>
+    
+    <lastmod>2022-02-05</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/2022/01/29/VASP-error-BRMIX-very-serious-problems-the-old-and-the-new-charge-density-differ/</loc>
+    
+    <lastmod>2022-02-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+
+  <url>
+    <loc>https://tpmk.github.io/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  
+  <url>
+    <loc>https://tpmk.github.io/tags/VASP/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/tags/DFT/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/tags/Git/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/tags/Notes/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/tags/LaTeX/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/tags/python/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+
+  
+  <url>
+    <loc>https://tpmk.github.io/categories/Computational-Chemistry/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/categories/Notes/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/categories/Life-tricks/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+</urlset>
