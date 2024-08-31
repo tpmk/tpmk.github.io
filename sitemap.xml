@@ -79,7 +79,7 @@
   </url>
   
   <url>
-    <loc>https://tpmk.github.io/tags/LaTeX/</loc>
+    <loc>https://tpmk.github.io/tags/Git/</loc>
     <lastmod>2024-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -100,13 +100,20 @@
   </url>
   
   <url>
-    <loc>https://tpmk.github.io/tags/Git/</loc>
+    <loc>https://tpmk.github.io/tags/LaTeX/</loc>
     <lastmod>2024-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
 
+  
+  <url>
+    <loc>https://tpmk.github.io/categories/Life-tricks/</loc>
+    <lastmod>2024-08-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
   
   <url>
     <loc>https://tpmk.github.io/categories/Computational-Chemistry/</loc>
@@ -117,13 +124,6 @@
   
   <url>
     <loc>https://tpmk.github.io/categories/Notes/</loc>
-    <lastmod>2024-08-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://tpmk.github.io/categories/Life-tricks/</loc>
     <lastmod>2024-08-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
