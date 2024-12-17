@@ -135,6 +135,33 @@
   
   
   <entry>
+    <title></title>
+    <link href="/2022/05/28/GPG-encryption-and-signature/"/>
+    <url>/2022/05/28/GPG-encryption-and-signature/</url>
+    
+    <content type="html"><![CDATA[<h2 id="对称加密和非对称加密">对称加密和非对称加密</h2><p>加密过程和解密过程使用的同一个密钥称作<strong>对称加密</strong>。由于加密和解密是一对可逆操作，简单高效，开销较小，广泛用于各种加密协议的核心中。常见的加密算法有AES、DES等。对称加密的最大缺点之一就是密钥的管理和分配。由于加密和解密都使用同一密钥，所以密钥不可避免地需要在网络中传播，被</p><p><ahref="https://www.ruanyifeng.com/blog/2011/08/what_is_a_digital_signature.html"class="uri">https://www.ruanyifeng.com/blog/2011/08/what_is_a_digital_signature.html</a></p><p><a href="http://www.youdzone.com/signature.html"class="uri">http://www.youdzone.com/signature.html</a></p><p><a href="https://www.ruanyifeng.com/blog/2013/07/gpg.html"class="uri">https://www.ruanyifeng.com/blog/2013/07/gpg.html</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>Life tricks</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>GPG</tag>
+      
+      <tag>privacy</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>python脚本批量进行VASP吸附结构频率计算</title>
     <link href="/2022/03/01/python-script-for-VASP-frequency-batch-calculation/"/>
     <url>/2022/03/01/python-script-for-VASP-frequency-batch-calculation/</url>
