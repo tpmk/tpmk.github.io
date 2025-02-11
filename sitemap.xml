@@ -117,6 +117,20 @@
   </url>
   
   <url>
+    <loc>https://tpmk.github.io/tags/GPG/</loc>
+    <lastmod>2025-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://tpmk.github.io/tags/privacy/</loc>
+    <lastmod>2025-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://tpmk.github.io/tags/VASP/</loc>
     <lastmod>2025-02-11</lastmod>
     <changefreq>weekly</changefreq>
@@ -131,14 +145,14 @@
   </url>
   
   <url>
-    <loc>https://tpmk.github.io/tags/GPG/</loc>
+    <loc>https://tpmk.github.io/tags/LaTeX/</loc>
     <lastmod>2025-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://tpmk.github.io/tags/privacy/</loc>
+    <loc>https://tpmk.github.io/tags/Notes/</loc>
     <lastmod>2025-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -158,20 +172,6 @@
     <priority>0.2</priority>
   </url>
   
-  <url>
-    <loc>https://tpmk.github.io/tags/Notes/</loc>
-    <lastmod>2025-02-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://tpmk.github.io/tags/LaTeX/</loc>
-    <lastmod>2025-02-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
 
   
   <url>
@@ -182,14 +182,14 @@
   </url>
   
   <url>
-    <loc>https://tpmk.github.io/categories/Computational-Chemistry/</loc>
+    <loc>https://tpmk.github.io/categories/Life-tricks/</loc>
     <lastmod>2025-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://tpmk.github.io/categories/Life-tricks/</loc>
+    <loc>https://tpmk.github.io/categories/Computational-Chemistry/</loc>
     <lastmod>2025-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
