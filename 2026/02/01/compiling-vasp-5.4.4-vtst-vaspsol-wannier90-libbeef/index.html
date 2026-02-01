@@ -29,7 +29,7 @@
 <meta property="og:description" content="最近因为在一个新的超算平台开了户，但是奇葩的是这个超算平台竟然 VASP 都没有编译。由于着急算个 case，想着干脆自己编译一个算了。本着大而全的心思，把常用和不常用的几个插件都编译进去。 本文记录了在 Intel 2018 工具链环境下，编译集成了 4 个常用插件的 VASP 5.4.4 的完整过程。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-02-01T02:14:02.000Z">
-<meta property="article:modified_time" content="2026-02-01T05:13:29.963Z">
+<meta property="article:modified_time" content="2026-02-01T05:30:13.381Z">
 <meta property="article:author" content="Steven Chu">
 <meta property="article:tag" content="VASP">
 <meta property="article:tag" content="DFT">
@@ -237,7 +237,7 @@
         <i class="iconfont icon-chart"></i>
         
           <!-- compatible with older versions-->
-          2.2k 字
+          2.1k 字
         
       </span>
     
@@ -249,7 +249,7 @@
         
         
           <!-- compatible with older versions-->
-          19 分钟
+          18 分钟
         
       </span>
     
@@ -382,7 +382,7 @@ target="_blank" rel="noopener" href="https://github.com/henniggroup/VASPsol">htt
 <hr />
 <h2 id="一编译器与核心模块选择">一、编译器与核心模块选择</h2>
 <p>首先 <code>module avail</code>
-看了下编译工具链，选择了比较稳健、兼容性比较好的方案是使用 <strong>Intel
+看了下编译工具链，选择了比较稳健、兼容性比较好的 <strong>Intel
 2018</strong> 工具链。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">module purge<br>module load compiler/intel/2018.5.274<br>module load mpi/intelmpi/2018.4.274<br></code></pre></td></tr></table></figure>
 <blockquote>
@@ -407,17 +407,15 @@ target="_blank" rel="noopener" href="https://www.vasp.at/">https://www.vasp.at/<
 <h3 id="准备初始-makefile">2.2 准备初始 Makefile</h3>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cp</span> <span class="hljs-built_in">arch</span>/makefile.include.linux_intel makefile.include<br></code></pre></td></tr></table></figure>
 <h3 id="编译顺序说明">2.3 编译顺序说明</h3>
-<p><strong>重要</strong>: VASPSol 和 VTST 是源代码补丁，必须在编译 VASP
-前应用；Wannier90 和 libbeef 是外部库，需要先单独编译。</p>
-<p>编译顺序： 1. libbeef（独立编译） 2. Wannier90（独立编译） 3.
+<p>VASPSol 和 VTST 是源代码补丁，必须在编译 VASP 前应用；Wannier90 和
+libbeef 是外部库，需要先单独编译。</p>
+<p>本文编译顺序： 1. libbeef（独立编译） 2. Wannier90（独立编译） 3.
 VTST（源码补丁） 4. VASPSol（源码补丁） 5. VASP 主程序</p>
 <hr />
 <h2 id="三编译外部库">三、编译外部库</h2>
 <h3 id="编译-libbeef">3.1 编译 libbeef</h3>
 <h4 id="下载源码">下载源码</h4>
 <p>从 GitHub 下载 libbeef： <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> /public/home/steven/software/test/vasp5.4.4/<br>git <span class="hljs-built_in">clone</span> https://github.com/vossjo/libbeef.git libbeef-master<br><span class="hljs-built_in">cd</span> libbeef-master<br></code></pre></td></tr></table></figure></p>
-<p>或者下载 release 版本：<a
-target="_blank" rel="noopener" href="https://github.com/vossjo/libbeef/releases">https://github.com/vossjo/libbeef/releases</a></p>
 <h4 id="编译安装">编译安装</h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">./configure CC=icc --prefix=/public/home/steven/software/test/vasp5.4.4/libbeef-master<br>make<br>make install<br></code></pre></td></tr></table></figure>
 <p>执行完之后，在 <code>lib/</code> 目录下会生成 <code>libbeef.a</code>
@@ -439,10 +437,6 @@ makefile.include</h4>
 <p>Wannier90 目前有 3.x 的版本，但是为了兼容 VASP 5.4.4，这里选择
 <strong>2.1.0</strong> 版本。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> /public/home/steven/software/test/vasp5.4.4/<br>wget http://www.wannier.org/code/wannier90-2.1.0.tar.gz<br>tar -xzf wannier90-2.1.0.tar.gz<br><span class="hljs-built_in">cd</span> wannier90-2.1.0/<br></code></pre></td></tr></table></figure>
-<blockquote>
-<p><strong>备用下载</strong>: GitHub mirror: <a
-target="_blank" rel="noopener" href="https://github.com/wannier-developers/wannier90/releases/tag/v2.1.0">https://github.com/wannier-developers/wannier90/releases/tag/v2.1.0</a></p>
-</blockquote>
 <h4 id="配置编译选项">配置编译选项</h4>
 <p>复制 Intel Fortran 的配置模板： <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cp</span> config/make.inc.ifort ./make.inc<br></code></pre></td></tr></table></figure></p>
 <p>修改 <code>make.inc</code> 文件，将 LIBDIR 改为使用环境变量：</p>
@@ -473,7 +467,7 @@ v2 接口选项：</p>
 <h4 id="下载源码-2">下载源码</h4>
 <p>从 VTST 官网下载最新版本：<a
 target="_blank" rel="noopener" href="https://theory.cm.utexas.edu/vtsttools/download.html">https://theory.cm.utexas.edu/vtsttools/download.html</a></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> /public/home/steven/software/test/vasp5.4.4/<br>wget https://theory.cm.utexas.edu/vtsttools/code/vtstcode-213.tgz<br>tar -xzf vtstcode-213.tgz<br></code></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> /public/home/steven/software/test/vasp5.4.4/<br>wget https://theory.cm.utexas.edu/code/vtstcode-213.tgz<br>tar -xzf vtstcode-213.tgz<br></code></pre></td></tr></table></figure>
 <h4 id="复制源文件到-vasp">复制源文件到 VASP</h4>
 <p>将 VTST 的所有源代码复制到 VASP 5.4.4 的 src 目录：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cp</span> vtstcode-213/vtstcode5/* vasp.5.4.4.pl2/src/<br></code></pre></td></tr></table></figure>
@@ -490,23 +484,17 @@ target="_blank" rel="noopener" href="https://theory.cm.utexas.edu/vtsttools/down
 <code>chain.o</code>（搜索即可找到），在这两处 <code>chain.o</code>
 <strong>之前</strong>分别添加以下内容：</p>
 <figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile">bfgs.o dynmat.o instanton.o lbfgs.o sd.o cg.o dimer.o bbm.o \<br>fire.o lanczos.o neb.o qm.o opt.o \<br></code></pre></td></tr></table></figure>
-<blockquote>
-<p><strong>原理</strong>: <code>.objects</code>
-文件定义了编译链接顺序，VTST 的优化算法模块需要在 chain.o 之前链接。</p>
-</blockquote>
 <hr />
 <h3 id="集成-vaspsol">4.2 集成 VASPSol</h3>
 <h4 id="下载源码-3">下载源码</h4>
 <p>从 GitHub 下载 VASPSol：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> /public/home/steven/software/test/vasp5.4.4/<br>git <span class="hljs-built_in">clone</span> https://github.com/henniggroup/VASPsol.git VASPsol-master<br></code></pre></td></tr></table></figure>
-<p>或下载 release 版本：<a
-target="_blank" rel="noopener" href="https://github.com/henniggroup/VASPsol/releases">https://github.com/henniggroup/VASPsol/releases</a></p>
 <h4 id="复制源文件">复制源文件</h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cp</span> VASPsol-master/src/solvation.F vasp.5.4.4.pl2/src/<br></code></pre></td></tr></table></figure>
 <h4 id="应用补丁">应用补丁</h4>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> vasp.5.4.4.pl2/<br>patch src/pot.F &lt; ../VASPsol-master/patches/pbz_patch_541<br></code></pre></td></tr></table></figure>
 <blockquote>
-<p><strong>注意</strong>: 尽管我们使用的是 VASP 5.4.4.pl2，仍然使用
+<p><strong>注意</strong>: VASP 5.4.4.pl2仍然使用
 <code>pbz_patch_541</code> 补丁。</p>
 </blockquote>
 <h4 id="修改-makefile.include">修改 makefile.include</h4>
@@ -516,7 +504,7 @@ target="_blank" rel="noopener" href="https://github.com/henniggroup/VASPsol/rele
 <h2 id="五编译-vasp">五、编译 VASP</h2>
 <p>所有插件配置完成后，回到 VASP 源码目录：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> /public/home/steven/software/test/vasp5.4.4/vasp.5.4.4.pl2/<br></code></pre></td></tr></table></figure>
-<h3 id="清理并编译">5.1 清理并编译</h3>
+<h3 id="编译-1">5.1 编译</h3>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make all         <span class="hljs-comment"># 编译所有版本（std, gam, ncl）</span><br></code></pre></td></tr></table></figure>
 <blockquote>
 <p><strong>编译时间</strong>: 根据硬件配置，完整编译大约需要 20-40
