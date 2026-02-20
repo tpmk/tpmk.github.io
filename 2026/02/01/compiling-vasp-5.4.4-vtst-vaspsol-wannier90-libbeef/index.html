@@ -29,7 +29,7 @@
 <meta property="og:description" content="最近因为在一个新的超算平台开了户，但是奇葩的是这个超算平台竟然 VASP 都没有编译。由于着急算个 case，想着干脆自己编译一个算了。本着大而全的心思，把常用和不常用的几个插件都编译进去。 本文记录了在 Intel 2018 工具链环境下，编译集成了 4 个常用插件的 VASP 5.4.4 的完整过程。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-02-01T02:14:02.000Z">
-<meta property="article:modified_time" content="2026-02-01T05:30:13.381Z">
+<meta property="article:modified_time" content="2026-02-02T09:08:11.589Z">
 <meta property="article:author" content="Steven Chu">
 <meta property="article:tag" content="VASP">
 <meta property="article:tag" content="DFT">
@@ -301,7 +301,7 @@
                 
                   
                     <!-- compatible with older versions-->
-                    本文最后更新于：2026年2月1日 下午
+                    本文最后更新于：2026年2月2日 下午
                   
                 
               </p>
@@ -442,13 +442,13 @@ makefile.include</h4>
 <p>修改 <code>make.inc</code> 文件，将 LIBDIR 改为使用环境变量：</p>
 <figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs diff"><span class="hljs-deletion">- LIBDIR = /opt/intel/mkl/lib/intel64</span><br><span class="hljs-addition">+ LIBDIR = $&#123;MKLROOT&#125;/lib/intel64</span><br></code></pre></td></tr></table></figure>
 <h4 id="编译">编译</h4>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">make<br>make lib<br></code></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">make<br>make lib<br>make <span class="hljs-built_in">test</span><br></code></pre></td></tr></table></figure>
 <blockquote>
 <p><strong>关于测试</strong>: <code>make test</code>
 是检测是否编译成功。由于代码库比较老，如果 HPC 环境使用较新的
-Python，<code>make test</code> 可能显示 failed 或者卡住。解决方案： -
-切换到 Python 2.x: <code>module load python/2.7</code> -
-或者直接跳过测试（不影响使用）</p>
+Python，<code>make test</code> 可能显示 failed
+或者卡住。解决方案：切换到 Python 2.x:
+<code>module load python/2.7</code>，或者直接跳过测试（不影响使用）。</p>
 </blockquote>
 <p>编译完成后会在当前目录生成 <code>libwannier.a</code> 静态库文件。</p>
 <h4 id="修改-vasp-的-makefile.include-1">修改 VASP 的
